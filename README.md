@@ -30,4 +30,6 @@ Desenvolver e avaliar modelos de Machine Learning capazes de prever o risco de a
 
 ## Status
 
-Sprint 0 - Planejamento
+Sprint 2 - MVP Analítico
+
+O MVP analítico utiliza uma coorte principal de municípios com população mínima de 50 mil habitantes e mantém a base completa para análise de sensibilidade. A metodologia e os resultados estão consolidados em `docs/defesa-sprint2.md`.

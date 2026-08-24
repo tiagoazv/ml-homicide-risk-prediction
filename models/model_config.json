@@ -1,0 +1,25 @@
+{
+  "random_state": 42,
+  "train_end": 2016,
+  "validation_end": 2019,
+  "minimum_population": 50000,
+  "population_filter": "populacao no ano de origem",
+  "feature_columns": [
+    "ano",
+    "taxa_homicidios",
+    "taxa_lag_1",
+    "taxa_lag_2",
+    "taxa_media_3_anos",
+    "taxa_std_3_anos",
+    "variacao_log_100_atual",
+    "log_populacao"
+  ],
+  "target_column": "target_variacao_log_100",
+  "population_source": "IBGE SIDRA tabela 6579; tabela 579 para 2007; tabela 202 para 2010",
+  "versions": {
+    "python": "3.12.3",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit_learn": "1.9.0"
+  }
+}
