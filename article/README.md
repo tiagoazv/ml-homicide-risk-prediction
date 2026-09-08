@@ -4,9 +4,5 @@ Título provisório:
 
 **Predição do risco de aumento de homicídios em municípios brasileiros utilizando Machine Learning**
 
-## Sprint 0
-
-- Introdução
-- Problema
-- Objetivos
-- Justificativa
+## Link para o artigo
+https://docs.google.com/document/d/1L65IQu2oXCuhJSJWGbKHS4OsYEx4ynFyQeEBTpxyzug/edit?usp=sharing
