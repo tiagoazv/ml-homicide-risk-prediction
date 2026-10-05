@@ -1,35 +1,66 @@
 # ML Homicide Risk Prediction
 
-Projeto desenvolvido na disciplina de Planejamento e Gestão de Projetos.
+Projeto acadêmico de aprendizado de máquina aplicado à previsão da taxa futura
+de homicídios em municípios brasileiros e à classificação relativa de risco.
 
-## Sobre o projeto
+## Escopo atual
 
-O projeto busca desenvolver e avaliar modelos de Machine Learning capazes de identificar municípios brasileiros com maior probabilidade de apresentar aumento nas ocorrências de homicídio em períodos subsequentes.
+A versão oficial é o **MVP preditivo final** (execução de referência `v11`). O
+Atlas da Violência é a fonte principal das taxas municipais. O alvo é a
+média da taxa nos dois anos seguintes, expressa por 100 mil habitantes. A
+classificação complementar identifica a probabilidade calibrada de o município
+pertencer ao quartil superior da taxa futura histórica.
 
-A solução utilizará dados públicos históricos de segurança pública e apresentará os resultados por meio de uma aplicação web interativa.
+O protocolo usa cinco anos históricos, horizonte de dois anos, validação
+temporal e duas coortes: população igual ou superior a 50 mil habitantes e
+todos os municípios elegíveis. Ausências de taxa não são convertidas em zero.
+O Poisson com exposição populacional permanece somente como análise de
+sensibilidade, pois usa uma contagem derivada da taxa e não um numerador oficial.
 
-## Problema de pesquisa
+## Aplicação
 
-Em que medida modelos de Machine Learning conseguem identificar municípios brasileiros com maior probabilidade de apresentar aumento nas ocorrências de homicídio em períodos subsequentes?
+A aplicação Streamlit apresenta indicadores observados, previsão retrospectiva
+e previsão futura não avaliada de 2024 para 2025–2026. O mapa permite visualizar
+taxa futura, probabilidade de alto risco, faixa, ranking, variação percentual e
+intervalo de previsão.
 
-## Objetivo
-
-Desenvolver e avaliar modelos de Machine Learning capazes de prever o risco de aumento das ocorrências de homicídio em municípios brasileiros a partir de dados públicos históricos de segurança pública.
+```bash
+source .venv/bin/activate
+streamlit run app/main.py
+```
 
 ## Estrutura
 
-- `article/` - artigo científico
-- `docs/` - documentação do projeto
-- `data/` - dados brutos e processados
-- `models/` - modelos treinados
-- `notebooks/` - exploração e experimentos
-- `src/` - código-fonte
-- `app/` - aplicação Streamlit
-- `tests/` - testes
-- `.github/` - configurações do GitHub
+- `app/` — aplicação e camada de leitura dos artefatos finais;
+- `article/` — artigo científico em desenvolvimento;
+- `data/raw/` — cópias locais das fontes utilizadas;
+- `data/processed/v5/` — indicadores observados para a aplicação;
+- `data/processed/v11/` — resultados, métricas e previsões finais;
+- `models/v11/` — modelos treinados da versão final;
+- `src/` — preparação, modelagem, validação e previsão;
+- `tests/` — testes automatizados da base final;
+- `docs/` — metodologia, fontes, resultados e documentação da aplicação.
 
-## Status
+## Documentação consolidada
 
-Sprint 2 - MVP Analítico
+- [Metodologia final](docs/metodologia-final.md)
+- [Fontes e rastreabilidade](docs/fontes-e-rastreabilidade.md)
+- [Resultados finais e decisões](docs/resultados-final.md)
+- [Previsão futura 2024–2026](docs/previsao-futura.md)
+- [Implementação do mapa](docs/plano-mapa.md)
+- [Artigo científico](article/artigo.md)
+- [Defesa da Sprint 2](docs/defesa-sprint2.md)
 
-O MVP analítico utiliza uma coorte principal de municípios com população mínima de 50 mil habitantes e mantém a base completa para análise de sensibilidade. A metodologia e os resultados estão consolidados em `docs/defesa-sprint2.md`.
+## Reprodução
+
+Com os dados brutos locais disponíveis, a sequência principal é:
+
+```bash
+.venv/bin/python -m src.experiment_final
+.venv/bin/python -m src.forecast_futura
+.venv/bin/python -m unittest discover -s tests -t .
+```
+
+`experiment_final` gera os artefatos retrospectivos, incluindo a análise de
+Poisson e as saídas enriquecidas. `forecast_futura` treina a camada futura
+2024–2026, que permanece explicitamente sem avaliação observada.

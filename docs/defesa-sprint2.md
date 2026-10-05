@@ -455,18 +455,17 @@ Principais arquivos:
 
 - `src/prepare_data.py` — preparação e criação do alvo;
 - `src/population.py` — população e filtro de coorte;
-- `src/models.py` — modelos e métricas;
-- `src/run_mvp_analitico.py` — execução completa;
-- `notebooks/sprint2_mvp_analitico.ipynb` — análise documentada;
-- `data/processed/model_metrics.csv` — métricas da coorte principal;
-- `data/processed/model_metrics_todos.csv` — métricas da base completa;
-- `models/model_config.json` — configuração e versões;
+- `src/models_final.py` — modelos e métricas da base final;
+- `src/experiment_final.py` — execução do experimento final;
+- `data/processed/v11/` — métricas, previsões e configurações da versão final;
+- `models/v11/` — modelos treinados da versão final;
 - `docs/defesa-sprint2.md` — documento principal com metodologia, resultados e limitações.
 
 Com o ambiente Python configurado, a execução principal é:
 
 ```bash
-python -m src.run_mvp_analitico
+python -m src.experiment_final
+python -m src.forecast_futura
 python -m unittest discover -s tests -v
 ```
 
@@ -476,9 +475,9 @@ A Sprint 2 entregou um MVP analítico reproduzível que transforma dados histór
 
 ## 21. Referências e rastreabilidade
 
-- [Atlas da Violência 2024](https://www.ipea.gov.br/atlasviolencia/arquivos/artigos/4600-atlasviolencia2024.pdf)
+- [Atlas da Violência 2024](https://repositorio.ipea.gov.br/handle/11058/14031)
 - [SIDRA/IBGE — Tabela 6579](https://sidra.ibge.gov.br/tabela/6579), população residente estimada
 - [SIDRA/IBGE — Tabela 579](https://sidra.ibge.gov.br/tabela/579), Contagem da População de 2007
 - [SIDRA/IBGE — Tabela 202](https://sidra.ibge.gov.br/tabela/202), Censo Demográfico
 - `data/raw/README.md`, com procedência, data de obtenção e hashes dos arquivos
-- `docs/contrato-base-analitica.md`, com o contrato formal da base
+- `docs/fontes-e-rastreabilidade.md`, com o contrato, fontes e regras de disponibilidade

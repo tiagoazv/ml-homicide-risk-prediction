@@ -1,5 +1,7 @@
 """Carregamento e integração da população municipal do IBGE."""
 
+import json
+
 from pathlib import Path
 
 import numpy as np
@@ -62,6 +64,59 @@ def load_population(path: str | Path) -> pd.DataFrame:
     return population.sort_values(["municipio_codigo", "ano"]).reset_index(drop=True)
 
 
+def load_sidra_population_json(path: str | Path) -> pd.DataFrame:
+    """Converte uma resposta JSON municipal do SIDRA para o contrato local."""
+
+    records = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(records, list) or not records:
+        raise ValueError("A resposta SIDRA precisa ser uma lista não vazia.")
+    data = pd.DataFrame(records)
+    required = {"D1C", "D3C", "V"}
+    missing = required.difference(data.columns)
+    if missing:
+        raise ValueError(f"Campos ausentes na resposta SIDRA: {sorted(missing)}")
+
+    result = pd.DataFrame(
+        {
+            "municipio_codigo": data["D1C"].astype("string").str.strip().str.zfill(7),
+            "ano": pd.to_numeric(data["D3C"], errors="coerce"),
+            "populacao": pd.to_numeric(data["V"], errors="coerce"),
+            "fonte_tabela": Path(path).stem,
+        }
+    )
+    result = result.dropna(subset=["municipio_codigo", "ano", "populacao"])
+    if result.empty:
+        raise ValueError("A resposta SIDRA não contém observações municipais válidas.")
+    result["ano"] = result["ano"].astype(int)
+    result["populacao"] = result["populacao"].astype(int)
+    if result["municipio_codigo"].str.fullmatch(r"\d{7}").eq(False).any():
+        raise ValueError("Há códigos municipais inválidos na resposta SIDRA.")
+    if result["populacao"].le(0).any():
+        raise ValueError("A resposta SIDRA contém populações não positivas.")
+    if result.duplicated(["municipio_codigo", "ano"]).any():
+        raise ValueError("A resposta SIDRA contém município-ano duplicado.")
+    return result.sort_values(["municipio_codigo", "ano"]).reset_index(drop=True)
+
+
+def combine_population_sources(*sources: pd.DataFrame) -> pd.DataFrame:
+    """Une fontes populacionais sem aceitar conflito para município-ano."""
+
+    if not sources:
+        raise ValueError("Informe ao menos uma fonte populacional.")
+    combined = pd.concat(sources, ignore_index=True)
+    required = set(POPULATION_COLUMNS).difference(combined.columns)
+    if required:
+        raise ValueError(f"Colunas ausentes na população: {sorted(required)}")
+    conflicts = combined.groupby(["municipio_codigo", "ano"])["populacao"].nunique()
+    if conflicts.gt(1).any():
+        raise ValueError("Fontes populacionais discordam para município-ano.")
+    return (
+        combined.drop_duplicates(["municipio_codigo", "ano"], keep="last")
+        .sort_values(["municipio_codigo", "ano"])
+        .reset_index(drop=True)
+    )
+
+
 def attach_population_features(
     frame: pd.DataFrame, population: pd.DataFrame
 ) -> pd.DataFrame:
@@ -75,16 +130,20 @@ def attach_population_features(
 
     data = frame.copy()
     data["_ordem_original"] = np.arange(len(data))
-    data = data.merge(
-        population,
-        on=["municipio_codigo", "ano"],
-        how="left",
-        validate="many_to_one",
-    ).sort_values(["municipio_codigo", "ano"])
-    data["populacao_observada"] = data["populacao"].notna()
-    data["populacao"] = data.groupby("municipio_codigo", sort=False)[
-        "populacao"
-    ].ffill()
+    history = population.rename(columns={"ano": "populacao_ano_referencia"})
+    data["municipio_codigo"] = data.municipio_codigo.astype("string")
+    history["municipio_codigo"] = history.municipio_codigo.astype("string")
+    data["ano"] = pd.to_numeric(data["ano"], errors="raise").astype("int64")
+    history["populacao_ano_referencia"] = pd.to_numeric(
+        history["populacao_ano_referencia"], errors="raise"
+    ).astype("int64")
+    join_year = "populacao_disponivel_desde" if "populacao_disponivel_desde" in history else "populacao_ano_referencia"
+    data = pd.merge_asof(
+        data.sort_values("ano"), history.sort_values(join_year),
+        left_on="ano", right_on=join_year,
+        by="municipio_codigo", direction="backward",
+    )
+    data["populacao_observada"] = data.ano.eq(data.populacao_ano_referencia)
 
     data = data.loc[data["populacao"].notna()].copy()
     if data.empty:
